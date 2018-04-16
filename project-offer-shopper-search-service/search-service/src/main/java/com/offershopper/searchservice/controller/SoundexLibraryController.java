@@ -30,17 +30,18 @@ public class SoundexLibraryController {
     String title = (String) document.get("offerTitle");
     String keywords = (String) document.get("keywords");
     String category = (String) document.get("category");
-    set.add(category);
+    set.add(category.toLowerCase().trim());
     //index
     //collection.createIndex(new Document("word", 1), new IndexOptions().unique(true));  
-    String[] titleSplit = title.split(" ");
+    String regx="[,\\s]+";
+    String[] titleSplit = title.split(regx);
     for (String str : titleSplit) {
-      set.add(str);
+      set.add(str.toLowerCase().trim());
       
     }
-    String[] keywordsSplit = keywords.split(",");
+    String[] keywordsSplit = keywords.split(regx);
     for (String str : keywordsSplit) {
-      set.add(str);
+      set.add(str.toLowerCase().trim());
     }
     
     
@@ -48,7 +49,8 @@ public class SoundexLibraryController {
       for (String str : set) {
         System.out.println(Soundex.getGode(str));
         cursor = collection.find(new Document("word",str)).iterator();
-       if(cursor.hasNext()) {        
+       if(cursor.hasNext()) { 
+         cursor.close();
          continue;
        }
           cursor.close();
