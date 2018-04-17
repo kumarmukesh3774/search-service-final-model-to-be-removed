@@ -1,4 +1,4 @@
-package com.offershopper.searchservice.controller;
+package com.offershopper.searchservice.soundex;
 
 public class Soundex {
   public static String getGode(String s)

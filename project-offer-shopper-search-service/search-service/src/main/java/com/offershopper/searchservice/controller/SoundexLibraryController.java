@@ -14,6 +14,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.IndexOptions;
+import com.offershopper.searchservice.soundex.Soundex;
 
 @RestController
 public class SoundexLibraryController {
@@ -34,6 +35,13 @@ public class SoundexLibraryController {
     //index
     //collection.createIndex(new Document("word", 1), new IndexOptions().unique(true));  
     String regx="[,\\s]+";
+    
+    String[] categorySplit = category.split(regx);
+    for (String str : categorySplit) {
+      set.add(str.toLowerCase().trim());
+      
+    }
+    
     String[] titleSplit = title.split(regx);
     for (String str : titleSplit) {
       set.add(str.toLowerCase().trim());

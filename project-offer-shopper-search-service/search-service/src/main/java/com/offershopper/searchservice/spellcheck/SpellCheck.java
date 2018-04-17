@@ -1,4 +1,4 @@
-package com.offershopper.searchservice.controller;
+package com.offershopper.searchservice.spellcheck;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,6 +19,7 @@ import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import com.offershopper.searchservice.soundex.Soundex;
 
 public class SpellCheck {
 
@@ -38,29 +39,29 @@ public class SpellCheck {
     MongoCollection<Document> collection = database.getCollection("soundex");
     MongoCursor cursor;
     String output="";
-    List<String> misSpelled = new ArrayList<String>();
+    output=input;
     int i = 0;
     String replacement="";
     List<RuleMatch> matches = langTool.check(input);
     try {
     for (RuleMatch match : matches) {
-      misSpelled.add(input.substring(match.getFromPos(), match.getToPos()));
+      replacement="";
+      String target="";
+      target=input.substring(match.getFromPos(), match.getToPos());
       String soundexCode = Soundex.getGode(input.substring(match.getFromPos(), match.getToPos()));
       cursor = collection.find(new Document("code", soundexCode)).iterator();
+      if(!cursor.hasNext())
       replacement=input.substring(match.getFromPos(), match.getToPos())+" ";
         while (cursor.hasNext()) {
           Document article = (Document) cursor.next();
-          System.out.println(article.get("word"));
+         // System.out.println(article.get("word"));
           replacement=replacement+article.get("word")+" ";
           
           
         }
         System.out.println("\n\n"+replacement+"\n\n");
-        output=input.replace(input.substring(match.getFromPos(), match.getToPos()), replacement);
-        for (String str : misSpelled) {
+        output=output.replace(target,replacement);
 
-          System.out.println(str);
-        }
 
     }
 
