@@ -10,12 +10,12 @@ import org.bson.Document;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
@@ -57,11 +57,28 @@ public class SearchController {
     try {
 
       MongoCursor<Document> cursor = null;
+      
+      
+      
+      Document findCommand = new Document("$text",
+          new Document("$search", searchKey).append("$caseSensitive", new Boolean(caseSensitive))
+          .append("$diacriticSensitive", new Boolean(diacriticSensitive)));
 
-      cursor = collection.find(
-          new Document("$text", new Document("$search", searchKey).append("$caseSensitive", new Boolean(caseSensitive))
-              .append("$diacriticSensitive", new Boolean(diacriticSensitive))))
+      Document projectCommand =  new Document(
+          "score", new Document("$meta", "textScore"));
+      
+
+      Document sortCommand = new Document(
+          "score", new Document("$meta", "textScore"));
+
+      
+      
+      cursor = collection 
+          .find(findCommand)
+          .projection(projectCommand)
+          .sort(sortCommand)
           .iterator();
+
 
       while (cursor.hasNext()) {
         Document article = cursor.next();
@@ -109,11 +126,30 @@ public class SearchController {
 
       MongoCursor<Document> cursor = null;
 
-      cursor = collection
-          .find(new Document("$text",
-              new Document("$search", searchKey).append("$caseSensitive", new Boolean(caseSensitive))
-                  .append("$diacriticSensitive", new Boolean(diacriticSensitive))).append("category", category))
+
+      
+      Document findCommand = new Document("$text",
+          new Document("$search", searchKey).append("$caseSensitive", new Boolean(caseSensitive))
+          .append("$diacriticSensitive", new Boolean(diacriticSensitive))).append("category", category);
+
+      Document projectCommand =  new Document(
+          "score", new Document("$meta", "textScore"));
+      
+
+      Document sortCommand = new Document(
+          "score", new Document("$meta", "textScore")
+      );
+
+      
+      
+      cursor = collection 
+          .find(findCommand)
+          .projection(projectCommand)
+          .sort(sortCommand)
           .iterator();
+      
+      
+
 
       while (cursor.hasNext()) {
         Document article = cursor.next();
@@ -152,11 +188,28 @@ public class SearchController {
     try {
 
       MongoCursor<Document> cursor = null;
+      
+      
+      Document findCommand = new Document("$text",
+          new Document("$search", category).append("$caseSensitive", new Boolean(caseSensitive))
+          .append("$diacriticSensitive", new Boolean(diacriticSensitive)));
 
-      cursor = collection.find(
-          new Document("$text", new Document("$search", category).append("$caseSensitive", new Boolean(caseSensitive))
-              .append("$diacriticSensitive", new Boolean(diacriticSensitive))))
+      Document projectCommand =  new Document(
+          "score", new Document("$meta", "textScore"));
+      
+
+      Document sortCommand = new Document(
+          "score", new Document("$meta", "textScore")
+      );
+
+      
+      
+      cursor = collection 
+          .find(findCommand)
+          .projection(projectCommand)
+          .sort(sortCommand)
           .iterator();
+
 
       while (cursor.hasNext()) {
         Document article = cursor.next();
@@ -177,4 +230,8 @@ public class SearchController {
     }
 
   }
+  
+  
+  
+  
 }

@@ -7,6 +7,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
 import redis.clients.jedis.Tuple;
@@ -41,13 +45,16 @@ public class TypeNextSuggestionController {
   String key = "keywords";
   int result_count = 10;
   ScanResult<Tuple> result=null;
-  
+  Set<String> resultList=new LinkedHashSet<String>();
+  JedisPool jedisPool =null;
   /**
    * connect() will establish connection with Jedis server.
    * I am using Redis Windows64 server which is running on 6379 port.
    */
   public void connect() {
-    jedis = new Jedis("127.0.0.1",6379);
+    //preparing a pool of jedis instances to handle large requirements
+   jedisPool = new JedisPool("127.0.0.1", 6379);
+    //jedis = new Jedis("127.0.0.1",6379);
   }
   
   /*
@@ -65,13 +72,26 @@ public class TypeNextSuggestionController {
       return ResponseEntity.status(HttpStatus.OK).body(results);
 
   }
+  
+  
+  public void addAllElements(ScanResult<Tuple> result ){
+    
+
+    Iterator<Tuple> itr = result.getResult().iterator();
+    while( itr.hasNext()) {
+      this.resultList.add(itr.next().getElement());
+      
+    }
+
+    
+  }
 
   
   
   
   
   @GetMapping(value="/q/{q}",produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
-  public static ResponseEntity<ScanResult<Tuple>> typeNextSuggestionController(@PathVariable(value = "q") String q) {
+  public static ResponseEntity<Set<String>> typeNextSuggestionController(@PathVariable(value = "q") String q) {
     q=q.toLowerCase().trim();
    TypeNextSuggestionController m = new TypeNextSuggestionController();
     int result_count = 10;
@@ -82,21 +102,29 @@ public class TypeNextSuggestionController {
     List<String> results = new ArrayList<String>();
     try {
       m.connect();
+     m.jedis=  m.jedisPool.getResource();
      // Long start = m.jedis.zrank(m.key, m.q);
       
       m.result= m.jedis.zscan(m.key, "0",new ScanParams().match(q+"*"));
       ScanResult <Tuple> t=m.result;
-      //System.out.println(m.result.getResult().size());
-      if(m.result.getResult().size()==0) {
+      m.addAllElements( m.result );
+   //   System.out.println(cursor.length());
+      if(m.resultList.size()<10) {
 
         m.result= m.jedis.zscan(m.key, "0",new ScanParams().match("*"+q+"*"));
-        if(m.result.getResult().size()==0) {
+        m.addAllElements( m.result );
+        if(m.resultList.size()<10) {
           
           String[] query = q.split(regx);
-          System.out.println(query[query.length-1]+"====================================================");
+         // System.out.println(query[query.length-1]+"====================================================");
+          if(m.resultList.size()<10) {
             m.result= m.jedis.zscan(m.key, "0",new ScanParams().match("*"+query[query.length-1]+"*"));
-            
-          
+            m.addAllElements( m.result );
+          }
+          if(m.resultList.size()<10) {
+            m.result= m.jedis.zscan(m.key, "0",new ScanParams().match(query[query.length-1]+"*"));
+            m.addAllElements( m.result );
+          }
 
         }
       }
@@ -135,7 +163,7 @@ public class TypeNextSuggestionController {
       e.printStackTrace();
     } finally {
       m.disconnect();
-      return ResponseEntity.status(HttpStatus.OK).body(m.result);
+      return ResponseEntity.status(HttpStatus.OK).body(m.resultList);
 
     }
   }
