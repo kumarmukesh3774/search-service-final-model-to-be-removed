@@ -62,6 +62,7 @@ public class TypeNextSuggestionController {
    */
   public void disconnect() {
     jedis.disconnect();
+    jedisPool.close();
   }
   
   
@@ -205,6 +206,7 @@ public class TypeNextSuggestionController {
     }*/
 
     m.disconnect();
+    
     
   }
 }
