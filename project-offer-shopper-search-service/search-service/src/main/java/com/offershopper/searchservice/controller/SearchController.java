@@ -48,11 +48,11 @@ public class SearchController {
 
     List<Document> searchResults = new ArrayList<Document>();
 
-    mongoClient = new MongoClient(new MongoClientURI("mongodb://localhost:27017"));
-    database = mongoClient.getDatabase("OfferShopperDb");
+    mongoClient = new MongoClient(new MongoClientURI("mongodb://10.151.61.153:27017"));
+    database = mongoClient.getDatabase("offershopperdb");
     collection = database.getCollection("offers");
 
-    collection.createIndex(new Document("category", "text").append("offerTitle", "text").append("keywords", "text"),
+    collection.createIndex(new Document("offerCategories", "text").append("offerTitle", "text").append("keywords", "text"),
         new IndexOptions());
 
     try {
@@ -101,8 +101,8 @@ public class SearchController {
 
   }
 
-  @GetMapping("category/{category}/search-key/{searchKey}")
-  public ResponseEntity<List<Document>> searchBycategoryAndSearchkey(@PathVariable(value = "category") String category,
+  @GetMapping("offerCategories/{offerCategories}/search-key/{searchKey}")
+  public ResponseEntity<List<Document>> searchByofferCategoriesAndSearchkey(@PathVariable(value = "offerCategories") String offerCategories,
       @PathVariable(value = "searchKey") String searchKey) {
     searchKey.toLowerCase();
    try {
@@ -116,11 +116,11 @@ public class SearchController {
 
     List<Document> searchResults = new ArrayList<Document>();
 
-    mongoClient = new MongoClient(new MongoClientURI("mongodb://localhost:27017"));
-    database = mongoClient.getDatabase("OfferShopperDb");
+    mongoClient = new MongoClient(new MongoClientURI("mongodb://10.151.61.153:27017"));
+    database = mongoClient.getDatabase("offershopperdb");
     collection = database.getCollection("offers");
 
-    collection.createIndex(new Document("category", "text").append("offerTitle", "text").append("keywords", "text"),
+    collection.createIndex(new Document("offerCategories", "text").append("offerTitle", "text").append("keywords", "text"),
         new IndexOptions());
 
     try {
@@ -131,7 +131,8 @@ public class SearchController {
       
       Document findCommand = new Document("$text",
           new Document("$search", searchKey).append("$caseSensitive", new Boolean(caseSensitive))
-          .append("$diacriticSensitive", new Boolean(diacriticSensitive))).append("category", category);
+          .append("$diacriticSensitive", new Boolean(diacriticSensitive)))
+          .append("offerCategories", "{\"*"+offerCategories+"*\"}");
 
       Document projectCommand =  new Document(
           "score", new Document("$meta", "textScore"));
@@ -155,7 +156,6 @@ public class SearchController {
       while (cursor.hasNext()) {
         Document article = cursor.next();
         System.out.println(article);
-        System.out.println("here-2");
         searchResults.add(article);
       }
 
@@ -167,24 +167,24 @@ public class SearchController {
     } finally {
       collection.dropIndexes();
       mongoClient.close();
-      return ResponseEntity.status(HttpStatus.FOUND).body(searchResults);
+      return ResponseEntity.status(HttpStatus.OK).body(searchResults);
     }
 
   }
 
-  @GetMapping("category/{category}")
-  public ResponseEntity<List<Document>> searchBycategory(@PathVariable(value = "category") String category) {
+  @GetMapping("offerCategories/{offerCategories}")
+  public ResponseEntity<List<Document>> searchByofferCategories(@PathVariable(value = "offerCategories") String offerCategories) {
 
     Logger mongoLogger = Logger.getLogger("org.mongodb.driver");
     mongoLogger.setLevel(Level.SEVERE);
 
     List<Document> searchResults = new ArrayList<Document>();
 
-    mongoClient = new MongoClient(new MongoClientURI("mongodb://localhost:27017"));
-    database = mongoClient.getDatabase("OfferShopperDb");
+    mongoClient = new MongoClient(new MongoClientURI("mongodb://10.151.61.153:27017"));
+    database = mongoClient.getDatabase("offershopperdb");
     collection = database.getCollection("offers");
 
-    collection.createIndex(new Document("category", "text"), new IndexOptions());
+    collection.createIndex(new Document("offerCategories", "text"), new IndexOptions());
 
     try {
 
@@ -192,7 +192,7 @@ public class SearchController {
       
       
       Document findCommand = new Document("$text",
-          new Document("$search", category).append("$caseSensitive", new Boolean(caseSensitive))
+          new Document("$search", offerCategories).append("$caseSensitive", new Boolean(caseSensitive))
           .append("$diacriticSensitive", new Boolean(diacriticSensitive)));
 
       Document projectCommand =  new Document(
@@ -227,7 +227,7 @@ public class SearchController {
     } finally {
       collection.dropIndexes();
       mongoClient.close();
-      return ResponseEntity.status(HttpStatus.FOUND).body(searchResults);
+      return ResponseEntity.status(HttpStatus.OK).body(searchResults);
     }
 
   }

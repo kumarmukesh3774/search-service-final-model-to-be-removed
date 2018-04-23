@@ -22,22 +22,22 @@ public class SoundexLibraryController {
   @PostMapping("/add-code")
   public HashSet<String> insert(@RequestBody Document document) {
     // establishing connection
-    MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb://localhost:27017"));
-    MongoDatabase database = mongoClient.getDatabase("OfferShopperDb");
+    MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb://10.151.61.153:27017"));
+    MongoDatabase database = mongoClient.getDatabase("offershopperdb");
     MongoCollection<Document> collection = database.getCollection("soundex");
     MongoCursor cursor ;
     
     HashSet<String> set = new HashSet<String>();
     String title = (String) document.get("offerTitle");
     String keywords = (String) document.get("keywords");
-    String category = (String) document.get("category");
-    set.add(category.toLowerCase().trim());
+    String offerCategories = (String) document.get("offerCategories");
+    set.add(offerCategories.toLowerCase().trim());
     //index
     //collection.createIndex(new Document("word", 1), new IndexOptions().unique(true));  
     String regx="[,\\s]+";
     
-    String[] categorySplit = category.split(regx);
-    for (String str : categorySplit) {
+    String[] offerCategoriesSplit = offerCategories.split(regx);
+    for (String str : offerCategoriesSplit) {
       set.add(str.toLowerCase().trim());
       
     }
