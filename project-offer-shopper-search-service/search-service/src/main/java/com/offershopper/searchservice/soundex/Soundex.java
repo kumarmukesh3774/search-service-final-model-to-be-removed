@@ -8,7 +8,6 @@ public class Soundex {
        
       char firstLetter = x[0];
 
-      //RULE [ 2 ]
       //Convert letters to numeric code
       for (int i = 0; i < x.length; i++) {
           switch (x[i]) {
@@ -62,7 +61,6 @@ public class Soundex {
       }
 
       //Remove duplicates
-      //RULE [ 1 ]
       String output = "" + firstLetter;
        
       //RULE [ 3 ]
@@ -70,7 +68,6 @@ public class Soundex {
           if (x[i] != x[i - 1] && x[i] != '0')
               output += x[i];
 
-      //RULE [ 4 ]
       //Pad with 0's or truncate
       output = output + "0000";
       return output.substring(0, 4);
